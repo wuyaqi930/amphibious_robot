@@ -38,7 +38,7 @@ class train_dataset():
         self.x_now_area = 0 #现在区域
         self.x_now_area = 0 #现在区域
 
-        self.reigon = 2
+        self.reigon = 3
 
         #------FLAG------
         self.forward_flag = 0 #直行的flag 
@@ -187,11 +187,12 @@ class train_dataset():
         #在区域内  注意：x = self.positions[0] y = self.positions[1]
         if -self.reigon < self.positions[0] < self.reigon and -self.reigon< self.positions[1] <self.reigon : 
 
-            print("区域1！！！！")
-            
+            print("区域1！！！！！！")
+
             #先获得yaw角（只获得一次）
             if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(-180,180)*np.pi/180 #角度制转化成弧度制
+                # self.Target_Angle = self.get_yaw(-180,180)*np.pi/180 #角度制转化成弧度制
+                self.Target_Angle = self.get_yaw(-50,50)*np.pi/180 + self.euler_angle[2] #角度制转化成弧度制
 
                 self.Target_Angle_Flag = 1
 
@@ -204,198 +205,243 @@ class train_dataset():
             #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
             
         #不在区域内
-        elif self.positions[0] < -self.reigon and -self.reigon < self.positions[1] < self.reigon:
-
-            print("区域2！！！！")
-
-            #转弯函数
-            #获得期望yaw角（只获得一次）
+        else :
+            #显示实时区域
+            print("在区域外面")
+            
+            #转动１８０度
             if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(140,180)*np.pi/180 #角度制转化成弧度制
+                #直行一步
+                print("在区域外面直行！！！！！")
+
+                self.go_forward() #往前走
+                time.sleep(2)
+
+                #获得期望yaw角（只获得一次）
+                if self.euler_angle[2]>0 :
+                    self.Target_Angle = self.euler_angle[2]-np.pi #角度制转化成弧度制
+
+                else:
+                    self.Target_Angle = self.euler_angle[2]+np.pi #角度制转化成弧度制
 
                 self.Target_Angle_Flag = 1
+            
             #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+            if not (self.Target_Angle - np.pi/15) < self.euler_angle[2] < (self.Target_Angle + np.pi/15):
+                print("在区域外面转弯！！！！！")
+                self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+            else:
+                #直行四步返回理想区域
+                print("1 返回！！！！！")
+                self.go_forward() #往前走
+                time.sleep(2)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+                print("2 返回！！！！！")
+                self.go_forward() #往前走
+                time.sleep(2)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[0] < -4 and -4 < self.positions[1] < 4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+                print("3 返回！！！！！")
+                self.go_forward() #往前走
+                time.sleep(2)
+
+        #直行三步
+        # elif self.positions[0] < -self.reigon and -self.reigon < self.positions[1] < self.reigon:
+
+        #     print("区域2！！！！")
+
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         self.Target_Angle = self.get_yaw(140,180)*np.pi/180 #角度制转化成弧度制
+
+        #         self.Target_Angle_Flag = 1
+
+            
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
+
+        #     time.sleep(1)
+
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
+
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[0] < -4 and -4 < self.positions[1] < 4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
         
-        elif self.positions[0] >self.reigon and -self.reigon < self.positions[1] < self.reigon :
+        # elif self.positions[0] >self.reigon and -self.reigon < self.positions[1] < self.reigon :
 
-            print("区域3！！！！")
+        #     print("区域3！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(-70,70)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         self.Target_Angle = self.get_yaw(-70,70)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[0] >4 and -4 < self.positions[1] < 4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[0] >4 and -4 < self.positions[1] < 4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
 
-        elif self.positions[1]<-self.reigon and -self.reigon < self.positions[0] <self.reigon :
+        # elif self.positions[1]<-self.reigon and -self.reigon < self.positions[0] <self.reigon :
 
-            print("区域4！！！！")
+        #     print("区域4！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                #self.Target_Angle = self.get_yaw(-20,-160)*np.pi/180 #角度制转化成弧度制
-                self.Target_Angle = self.get_yaw(-160,-20)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         #self.Target_Angle = self.get_yaw(-20,-160)*np.pi/180 #角度制转化成弧度制
+        #         self.Target_Angle = self.get_yaw(-160,-20)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[1]<-4 and -4 < self.positions[0] <4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[1]<-4 and -4 < self.positions[0] <4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
         
-        elif self.positions[1]>self.reigon and -self.reigon < self.positions[0] <self.reigon :
+        # elif self.positions[1]>self.reigon and -self.reigon < self.positions[0] <self.reigon :
 
-            print("区域5！！！！")
+        #     print("区域5！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(20,160)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         self.Target_Angle = self.get_yaw(20,160)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[1]>4 and -4<self.positions[0]<4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[1]>4 and -4<self.positions[0]<4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
 
-        elif self.positions[0]<-self.reigon and self.positions[1]<-self.reigon :
-            print("区域6！！！！")
+        # elif self.positions[0]<-self.reigon and self.positions[1]<-self.reigon :
+        #     print("区域6！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                #self.Target_Angle = self.get_yaw(-110,-160)*np.pi/180 #角度制转化成弧度制
-                self.Target_Angle = self.get_yaw(-160,-110)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         #self.Target_Angle = self.get_yaw(-110,-160)*np.pi/180 #角度制转化成弧度制
+        #         self.Target_Angle = self.get_yaw(-160,-110)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[0]<-4 and self.positions[1]<-4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[0]<-4 and self.positions[1]<-4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
         
-        elif self.positions[0]>self.reigon and self.positions[1]<-self.reigon :
-            print("区域7！！！！")
+        # elif self.positions[0]>self.reigon and self.positions[1]<-self.reigon :
+        #     print("区域7！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                #self.Target_Angle = self.get_yaw(-20,-70)*np.pi/180 #角度制转化成弧度制
-                self.Target_Angle = self.get_yaw(-70,-20)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         #self.Target_Angle = self.get_yaw(-20,-70)*np.pi/180 #角度制转化成弧度制
+        #         self.Target_Angle = self.get_yaw(-70,-20)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[1]<-4 and self.positions[0]>4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[1]<-4 and self.positions[0]>4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
         
-        elif self.positions[1]>self.reigon and self.positions[0]>self.reigon :
+        # elif self.positions[1]>self.reigon and self.positions[0]>self.reigon :
 
-            print("区域8！！！！")
+        #     print("区域8！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(20,70)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         self.Target_Angle = self.get_yaw(20,70)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[1]>4 and self.positions[0]>4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[1]>4 and self.positions[0]>4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
         
-        elif self.positions[1]>self.reigon and self.positions[0]<-self.reigon :
+        # elif self.positions[1]>self.reigon and self.positions[0]<-self.reigon :
 
-            print("区域9！！！！")
+        #     print("区域9！！！！")
 
-            #转弯函数
-            #获得期望yaw角（只获得一次）
-            if(self.Target_Angle_Flag==0):
-                self.Target_Angle = self.get_yaw(110,160)*np.pi/180 #角度制转化成弧度制
+        #     #转弯函数
+        #     #获得期望yaw角（只获得一次）
+        #     if(self.Target_Angle_Flag==0):
+        #         self.Target_Angle = self.get_yaw(110,160)*np.pi/180 #角度制转化成弧度制
 
-                self.Target_Angle_Flag = 1
-            #转弯到固定角度
-            self.turn_to_target_angle(self.Target_Angle)
+        #         self.Target_Angle_Flag = 1
+        #     #转弯到固定角度
+        #     self.turn_to_target_angle(self.Target_Angle)
 
-            time.sleep(1)
+        #     time.sleep(1)
 
-            #直行函数:转动到固定角度成功之后才执行
-            if(self.turn_to_target_angle_success == 1):
-                self.control_once(self.Target_Angle)
+        #     #直行函数:转动到固定角度成功之后才执行
+        #     if(self.turn_to_target_angle_success == 1):
+        #         self.control_once(self.Target_Angle)
 
-                # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
-                # if not (self.positions[1]>4 and self.positions[0]<-4) :
-                #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
-                #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+        #         # #此时运动已经完成判断如果不在区域之内了，就将self.turn_to_target_angle_success 和 self.Target_Angle_Flag 归零
+        #         # if not (self.positions[1]>4 and self.positions[0]<-4) :
+        #         #     self.turn_to_target_angle_success = 0 #下一个阶段需要重新转到理想角度
+        #         #     self.Target_Angle_Flag = 0 #下一个阶段需要重新获得理想角度
+
+
 
     #控制运动一次：直行+转30圈+转圈到指定位置
     def control_once(self,target_angle): #必须很快速 
