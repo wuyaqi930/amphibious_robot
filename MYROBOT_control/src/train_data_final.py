@@ -38,7 +38,7 @@ class train_dataset():
         self.x_now_area = 0 #现在区域
         self.x_now_area = 0 #现在区域
 
-        self.reigon = 2
+        self.reigon = 4 #数据采集范围　
 
         self.point_angle = 0 #距离原点的理想距离
         self.Target_Angle=0 #距离目标角度的理想距离
