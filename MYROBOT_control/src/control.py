@@ -1,3 +1,4 @@
+#coding=utf-8
 import rospy
 import time
 from math import pi
@@ -18,7 +19,7 @@ state=[0,0,0,0,0,0,0,0]
 train_state=Float64MultiArray()
 
 train_state.data=state
-def callback(data):
+def callback(data): #这个什么意思，作用是什么？
        for i in range(6):
             velocity[i]=data.velocity[i]
             position[i]=data.position[i]
@@ -36,7 +37,7 @@ def callback3(data):
     state[4]=data.pose[1].orientation.z
     state[5]=data.pose[1].orientation.w
     # train_state.data.append(state)
-    print(state)
+    #print(state)
     
 def set(velocity_d,position_d):
     is_ok = [0,0,0,0,0,0]
@@ -370,10 +371,13 @@ if __name__=="__main__":
     while(1):
         
         if(v.linear.x==1.0):
+            #把训练数据：位姿+线速度+角速度 包装成训练信息
             train_state.data[6]=1
             train_state.data[7]=0
             pub8.publish(train_state)
+            #往前运动
             move_forward()
+            #发送运动结束指令
             pub7.publish(1)
             v.linear.x=0
             v.angular.z=0
