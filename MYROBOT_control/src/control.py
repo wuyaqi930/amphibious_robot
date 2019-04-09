@@ -20,7 +20,7 @@ train_state=Float64MultiArray()
 
 train_state.data=state
 def callback(data): #这个什么意思，作用是什么？
-       for i in range(6):
+        for i in range(6):
             velocity[i]=data.velocity[i]
             position[i]=data.position[i]
             k_leg[i]=(position[i]+pi)//(2*pi)

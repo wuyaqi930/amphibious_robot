@@ -62,7 +62,8 @@ if __name__ == '__main__':
     time.sleep(0.1)
     #开始控制
     while start_flag == 1: #一直循环接受数据
-        control_key = raw_input("raw_input：") #获得键盘输入
+        #control_key = raw_input("raw_input：") #获得键盘输入
+        control_key = input("raw_input：") #获得键盘输入
 
         if control_key == "w": #前进
             #显示控制量
