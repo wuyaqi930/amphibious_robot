@@ -172,14 +172,17 @@ class MPC:
 
 
     # ------------定义目标代价函数------------
-    def objective(self, x_now, x_init, x_desire):
+    def objective(self, x_now, x_init, x_desire): #x_now:最终位置 x_init:初始位置 x_desire:最终位置 
         x_now = np.reshape(x_now, 3).astype(np.float)  # np.[1,3]转化成np.[3]
+
+        #计算最终位置和理想位置之间的差
+        error_position = np.dot((x_now[0:2]-x_desire[0:2]),(x_now[0:2]-x_desire[0:2]).T)
 
         # yaw角误差
         error_yaw = self.yawToTarget(x_now,x_init,x_desire)
 
         # 定义代价函数(只考虑yaw角)
-        J = self.P*np.power(error_yaw,2)# 二次型的样子
+        J = self.P*np.power(error_yaw,2) +self.Q*error_position # 二次型的样子
 
         return J
 
@@ -195,14 +198,14 @@ class MPC:
         #计算理想yaw角
         yaw_point_to_target = self.angle(point_to_target[0],point_to_target[1])
 
-        print("理想角度！！！！！！！！！！！！！！！！！！！！！！！")
-        print(yaw_point_to_target)
+        # print("理想角度！！！！！！！！！！！！！！！！！！！！！！！")
+        # print(yaw_point_to_target)
         
         #计算实际yaw角
         yaw_now = x_now[2] 
 
-        print("初始角度！！！！！！！！！！！！！！！！！！！！！！！")
-        print(yaw_now)
+        # print("最终角度！！！！！！！！！！！！！！！！！！！！！！！")
+        # print(yaw_now)
 
         #计算实际yaw角和理想yaw角之间的距离
         error_yaw = yaw_point_to_target - yaw_now 
@@ -297,12 +300,12 @@ class MPC:
         self.x_desire = np.reshape(self.x_desire, 3).astype(np.float)  # 转化成numpy array
 
 
-        print("参数成功传入")
-        print("optimize-x_init")
-        print(self.x_init)
+        # print("参数成功传入")
+        # print("optimize-x_init")
+        # print(self.x_init)
 
-        print("optimize-x_desire")
-        print(self.x_desire)
+        # print("optimize-x_desire")
+        # print(self.x_desire)
 
 
 

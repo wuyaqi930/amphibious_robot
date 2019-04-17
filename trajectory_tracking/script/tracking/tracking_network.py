@@ -33,6 +33,7 @@ class tracking_networks():
         self.positions = np.zeros(3) #位置信息
         self.step = 2 #步长信息为５
         self.count = 0 #目标点的象征
+        self.count_number = 0 #走过了的距离
         self.control_final = np.zeros((self.step,2))#最终控制序列
 
         self.x_init = np.zeros(3) #位置信息
@@ -44,22 +45,23 @@ class tracking_networks():
         self.mpc = optimize.MPC(self.x_init,self.x_desire) #初始化
         self.mpc.restore_params() #重新载入网络
 
-        # #---------生成理想轨迹---------
-        # self.x=np.arange(-4,4,0.5)
-        # self.y=np.zeros(len(self.x))
-
-        # #插值取目标点
-        # for num in range(len(self.x)):
-        #     self.y[num] = 3*math.sin(self.x[num]*np.pi/8) # list向量
-
-        # self.count = 0 #第几个目标点
-
-        # print(self.x)
-        # print(self.y)
-
         #---------生成理想轨迹---------
-        self.x=np.arange(0,-5,-1)
-        self.y=np.zeros(5)
+        #self.x=np.arange(-4,4,0.5)
+        self.x=np.arange(4,-4,-0.5)
+        self.y=np.zeros(len(self.x))
+
+        #插值取目标点
+        for num in range(len(self.x)):
+            self.y[num] = 3*math.sin(self.x[num]*np.pi/8) # list向量
+
+        self.count = 0 #第几个目标点
+
+        print(self.x)
+        print(self.y)
+
+        # #---------生成理想轨迹---------
+        # self.x=np.arange(0,-5,-1)
+        # self.y=np.arange(0,-3,-0.5)
 
         #---------跟踪算法-----------
         #跟踪
@@ -92,14 +94,14 @@ class tracking_networks():
         self.x_init[1] = self.positions[1] #y
         self.x_init[2] = self.euler_angle[2] #yaw
 
-        # self.x_desire[0]=self.x[self.count]
-        # self.x_desire[1]=self.y[self.count]
-        # self.x_desire[2]=0
-
-        #调试代码
-        self.x_desire[0]=0
-        self.x_desire[1]=2
+        self.x_desire[0]=self.x[self.count]
+        self.x_desire[1]=self.y[self.count]
         self.x_desire[2]=0
+
+        # #调试代码
+        # self.x_desire[0]=4.5
+        # self.x_desire[1]=3.5
+        # self.x_desire[2]=0
 
         #将理想轨迹和实际轨迹丢进MPC得出控制量
         #传入实际位置＋理想位置
@@ -108,9 +110,6 @@ class tracking_networks():
         #得到最优控制序列
         self.control_final = self.mpc.optimize() 
 
-        # print("self.control_final")
-        # print(self.control_final)
-
         #将控制量发布出去
         self.move(self.control_final)
 
@@ -118,24 +117,59 @@ class tracking_networks():
         self.target_point(self.x_desire,self.positions)
 
     def target_point(self,x_desire,x_now):
+        print("target to position!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
         #计算距离
         distance = np.sqrt(np.power((x_desire[0]-x_now[0]),2)+np.power((x_desire[1]-x_now[1]),2))
+
+        print("distance!!!!!!!!!!!!!!!!!!!")
+        print(distance)
+
         #如果距离满足要求（目标点＋１）
-        if distance <=0.2:
+        if distance <= 0.25:
             self.count = self.count+1 #目标点变成下一个
 
+            print("达到目标点")
+
             #运动到终点之后，归位
-            if self.count >=19 :
+            #if self.count >=7 :
+            if self.count >=15 :
                 self.count = 0
+        
+        # #如果走过了（目标点+1)
+        # #if x_now[0]>x_desire[0] or x_now[1]<x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        
+        # if x_now[0] < x_desire[0] or x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #     print("走过了！！！！！！！！！！！！！！！！！！")
 
+        #     print("x_now")
+        #     print(x_now)
+        #     print("x_desire")
+        #     print(x_desire)
 
+        #     self.count_number = self.count_number +1 
+            
+        #     if self.count_number >=1:
+        #         print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #         #跳转至下一个点
+        #         self.count = self.count + 1
+
+        #         #运动到终点之后，归位
+        #         #if self.count >=7 :
+        #         if self.count >=15 :
+        #             self.count = 0
+
+        #         #初始化
+        #         self.count_number = 0
+
+                
 
     def move(self,control_final):
         #初始化
         is_done.data = 0
 
         while 1:
-            if(self.go_flag<1):
+            if(self.go_flag<2):
                 if (is_done.data==1):#静止状态
                     #连续发送五次控制量
                     for number in range(10):
@@ -161,7 +195,7 @@ class tracking_networks():
                     time.sleep(1)
 
 
-            elif(self.go_flag >= 1):
+            elif(self.go_flag >= 2):
                 #将turn_flag复位
                 self.go_flag = 0
 
@@ -264,4 +298,3 @@ if __name__ == '__main__':
     #监控pub和sub
     rospy.spin()
 
-    
