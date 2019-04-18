@@ -99,8 +99,8 @@ class tracking_networks():
         self.x_desire[2]=0
 
         # #调试代码
-        # self.x_desire[0]=4.5
-        # self.x_desire[1]=3.5
+        # self.x_desire[0]=5
+        # self.x_desire[1]=5
         # self.x_desire[2]=0
 
         #将理想轨迹和实际轨迹丢进MPC得出控制量
@@ -136,31 +136,31 @@ class tracking_networks():
             if self.count >=15 :
                 self.count = 0
         
-        # #如果走过了（目标点+1)
-        # #if x_now[0]>x_desire[0] or x_now[1]<x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #如果走过了（目标点+1)
+        #if x_now[0]>x_desire[0] or x_now[1]<x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
         
-        # if x_now[0] < x_desire[0] or x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-        #     print("走过了！！！！！！！！！！！！！！！！！！")
+        if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+            print("走过了！！！！！！！！！！！！！！！！！！")
 
-        #     print("x_now")
-        #     print(x_now)
-        #     print("x_desire")
-        #     print(x_desire)
+            print("x_now")
+            print(x_now)
+            print("x_desire")
+            print(x_desire)
 
-        #     self.count_number = self.count_number +1 
+            self.count_number = self.count_number +1 
             
-        #     if self.count_number >=1:
-        #         print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-        #         #跳转至下一个点
-        #         self.count = self.count + 1
+            if self.count_number >=2:
+                print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+                #跳转至下一个点
+                self.count = self.count + 1
 
-        #         #运动到终点之后，归位
-        #         #if self.count >=7 :
-        #         if self.count >=15 :
-        #             self.count = 0
+                #运动到终点之后，归位
+                #if self.count >=7 :
+                if self.count >=15 :
+                    self.count = 0
 
-        #         #初始化
-        #         self.count_number = 0
+                #初始化
+                self.count_number = 0
 
                 
 
@@ -169,7 +169,7 @@ class tracking_networks():
         is_done.data = 0
 
         while 1:
-            if(self.go_flag<2):
+            if(self.go_flag<1):
                 if (is_done.data==1):#静止状态
                     #连续发送五次控制量
                     for number in range(10):
@@ -195,7 +195,7 @@ class tracking_networks():
                     time.sleep(1)
 
 
-            elif(self.go_flag >= 2):
+            elif(self.go_flag >= 1):
                 #将turn_flag复位
                 self.go_flag = 0
 
