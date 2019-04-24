@@ -7,6 +7,7 @@ from std_msgs.msg import Int16 #反馈需要
 from sensor_msgs.msg import Imu #导入imu数据类型
 from geometry_msgs.msg import Twist #控制命令需要
 from std_msgs.msg import Float64MultiArray #自己的话题transformation 
+import matplotlib.pyplot as plt #画图工具
 
 import math 
 import numpy as np
@@ -45,23 +46,28 @@ class tracking_networks():
         self.mpc = optimize.MPC(self.x_init,self.x_desire) #初始化
         self.mpc.restore_params() #重新载入网络
 
-        #---------生成理想轨迹---------
-        #self.x=np.arange(-4,4,0.5)
-        self.x=np.arange(4,-4,-0.5)
-        self.y=np.zeros(len(self.x))
+#---------生成理想轨迹:正弦曲线---------
+        # #self.x=np.arange(-4,4,0.5)
+        # self.x=np.arange(4,-4,-0.5)
+        # self.y=np.zeros(len(self.x))
 
-        #插值取目标点
-        for num in range(len(self.x)):
-            self.y[num] = 3*math.sin(self.x[num]*np.pi/8) # list向量
+        # #插值取目标点
+        # for num in range(len(self.x)):
+        #     self.y[num] = 3*math.sin(self.x[num]*np.pi/8) # list向量
 
-        self.count = 0 #第几个目标点
+        # self.count = 0 #第几个目标点
+
+        # print(self.x)
+        # print(self.y)
+
+#---------生成理想轨迹：利萨如曲线---------
+        #self.x,self.y = self.lisajous(4,4,0.05)
+        self.x,self.y = self.curve_generate(0.5)
 
         print(self.x)
         print(self.y)
 
-        # #---------生成理想轨迹---------
-        # self.x=np.arange(0,-5,-1)
-        # self.y=np.arange(0,-3,-0.5)
+        self.count = 0 #第几个目标点
 
         #---------跟踪算法-----------
         #跟踪
@@ -77,6 +83,71 @@ class tracking_networks():
 
         rospy.Subscriber("gazebo/model_states", ModelStates, self.callback_3)#获得实时角度和位置
 
+    #生成利萨如曲线（range_x=ｘ轴的范围，range_y=y轴的范围,步长＝step)
+    def lisajous(self,range_x,range_y,step): 
+        theta = np.arange(0,2*np.pi,step*np.pi)
+
+        position_x = -range_x*np.sin(theta)
+
+        position_y = -range_y*np.sin(2*theta)
+
+        print(position_x)
+        print(position_y)
+
+        # #创建图像
+        # plt.figure(1)
+
+        # plt.plot(position_x,position_y)
+
+        # plt.show()
+
+        return position_x,position_y
+
+    #生成双正弦曲线（lineStep 步长）
+    def curve_generate(self,lineStep):
+        #------------创建四条曲线------------
+        #第一条正弦曲线
+        sinOne_x=np.arange(4,-4,-0.5)
+        sinOne_y=np.zeros(len(sinOne_x))
+
+        #插值取目标点
+        for num in range(len(sinOne_x)):
+            sinOne_y[num] = 3*math.sin(sinOne_x[num]*np.pi/8) # list向量
+
+        #第一条直线
+        lineOne_y = np.arange(-3,3,lineStep)
+        lineOne_x = -4*np.ones(len(lineOne_y))
+
+        #第二条正弦曲线
+        sinTwo_x=np.arange(-4,4,0.5)
+        sinTwo_y=np.zeros(len(sinTwo_x)) 
+
+        for num in range(len(sinTwo_x)):
+            sinTwo_y[num] = -3*math.sin(sinTwo_x[num]*np.pi/8) # list向量
+
+        #第二条直线
+        lineTwo_y = np.arange(-3,3,lineStep)
+        lineTwo_x = 4*np.ones(len(lineOne_y))
+
+        #------------将四条曲线拼接在一起------------
+        #创建x 
+        x = np.append(sinOne_x,lineOne_x)
+        x = np.append(x,sinTwo_x)
+        x = np.append(x,lineTwo_x)
+
+        #创建y
+        y = np.append(sinOne_y,lineOne_y)
+        y = np.append(y,sinTwo_y)
+        y = np.append(y,lineTwo_y)
+
+        #创建图像
+        plt.figure(1)
+
+        plt.plot(x,y)
+
+        plt.show()
+
+        return x,y
 
     #定义第一个回调函数－－轨迹追踪函数
     def callback(self,data):
@@ -126,43 +197,118 @@ class tracking_networks():
         print(distance)
 
         #如果距离满足要求（目标点＋１）
-        if distance <= 0.25:
+        if distance <= 0.3:
             self.count = self.count+1 #目标点变成下一个
 
             print("达到目标点")
 
             #运动到终点之后，归位
             #if self.count >=7 :
-            if self.count >=15 :
+            if self.count >=39 :
                 self.count = 0
         
-        #如果走过了（目标点+1)
-        #if x_now[0]>x_desire[0] or x_now[1]<x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        # #如果走过了（目标点+1)
+        # if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #     print("走过了！！！！！！！！！！！！！！！！！！")
+
+        #     print("x_now")
+        #     print(x_now)
+        #     print("x_desire")
+        #     print(x_desire)
+        #     self.count_number = self.count_number +1 
         
-        if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-            print("走过了！！！！！！！！！！！！！！！！！！")
+        #     if self.count_number >=2:
+        #         print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #         #跳转至下一个点
+        #         self.count = self.count + 1
 
-            print("x_now")
-            print(x_now)
-            print("x_desire")
-            print(x_desire)
+        #         #运动到终点之后，归位
+        #         #if self.count >=7 :
+        #         if self.count >=39 :
+        #             self.count = 0
 
-            self.count_number = self.count_number +1 
+        #         #初始化
+        #         self.count_number = 0
+
+        if 0<self.count<=15: #第一个正弦曲线
+            #如果走过了（目标点+1)
+            if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+                print("走过了！！！！！！！！！！！！！！！！！！")
+
+                print("x_now")
+                print(x_now)
+                print("x_desire")
+                print(x_desire)
+
+                self.count_number = self.count_number +1 
             
-            if self.count_number >=2:
-                print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-                #跳转至下一个点
-                self.count = self.count + 1
+                if self.count_number >=2:
+                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+                    #跳转至下一个点
+                    self.count = self.count + 1
 
-                #运动到终点之后，归位
-                #if self.count >=7 :
-                if self.count >=15 :
-                    self.count = 0
+                    #初始化
+                    self.count_number = 0
+        elif 16<= self.count <=27: #第一条直线
+            #如果走过了（目标点+1)
+            if x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+                print("走过了！！！！！！！！！！！！！！！！！！")
 
-                #初始化
-                self.count_number = 0
-
+                print("x_now")
+                print(x_now)
+                print("x_desire")
+                print(x_desire)
                 
+                self.count_number = self.count_number +1 
+            
+                if self.count_number >=2:
+                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+                    #跳转至下一个点
+                    self.count = self.count + 1
+
+                    #初始化
+                    self.count_number = 0
+        elif 28<= self.count <=43: #第二个正弦曲线
+            #如果走过了（目标点+1)
+            if x_now[1] > x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
+                print("走过了！！！！！！！！！！！！！！！！！！")
+
+                print("x_now")
+                print(x_now)
+                print("x_desire")
+                print(x_desire)
+                
+                self.count_number = self.count_number +1 
+            
+                if self.count_number >=2:
+                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+                    #跳转至下一个点
+                    self.count = self.count + 1
+
+                    #初始化
+                    self.count_number = 0
+        elif 44<= self.count <=55: #第二条直线
+            #如果走过了（目标点+1)
+            if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+                print("走过了！！！！！！！！！！！！！！！！！！")
+
+                print("x_now")
+                print(x_now)
+                print("x_desire")
+                print(x_desire)
+                
+                self.count_number = self.count_number +1 
+            
+                if self.count_number >=2:
+                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+                    #跳转至下一个点
+                    self.count = self.count + 1
+
+                    #初始化
+                    self.count_number = 0
+        else :
+            self.count = 0
+
 
     def move(self,control_final):
         #初始化

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math #数学计算相关包
 from scipy import interpolate #平滑曲线
+import time 
 
 #图像滤波
 def data_filter(data):
@@ -45,30 +46,49 @@ def error(dataFloat):
 
     return error,error_abs
 
+#生成利萨如曲线（range_x=ｘ轴的范围，range_y=y轴的范围,步长＝step)
+def lisajous(range_x,range_y,step): 
+    theta = np.arange(0,2*np.pi,step*np.pi)
+
+    position_x = range_x*np.sin(theta)
+
+    position_y = range_y*np.sin(2*theta)
+
+    print(position_x)
+    print(position_y)
+
+    #创建图像
+    plt.figure(1)
+
+    plt.plot(position_x,position_y)
+
+    plt.show()
+
+    return position_x,position_y
+
+
 
 def result_plot(data):  
     #数据预处理
     dataFloat = data_filter(data) 
     
     #创建图像
+    #plt.figure(figsize=(50,10))
     plt.figure(1)
 
     #-----------将实际&理想轨迹画图-----------
-    # #创建子图像
-    # plt.subplot(211)
+    #创建子图像
+    plt.subplot(211)
 
     #定义横纵坐标
     plt.xlabel("position-X")
     plt.ylabel("position-Y")
     
-    # #设置横纵坐标范围
-    # plt.xlim((1, 5))
-    # plt.ylim((1, 5))
+    #设置横纵坐标范围
+    plt.xlim((-4, 5))
+    plt.ylim((-4, 4))
 
-    # #－－－画图－实际轨迹－－－
-    # plt.plot(dataFloat[:,0],dataFloat[:,1])
-
-    #－－－画图－理想轨迹－－－
+    #----------画图--理想轨迹-----------
     #理想轨迹生成
     x=np.arange(4,-3,-0.1)
     y=np.zeros(len(x))
@@ -84,13 +104,33 @@ def result_plot(data):
     #画图－样条平滑一下
     f = interpolate.interp1d(dataFloat[:,0], dataFloat[:,1], kind='slinear') 
 
-    x_interpolate =np.arange(4,-3,-0.01)
+    x_interpolate =np.arange(4,-3,-0.005)
 
     y_interpolate = f(x_interpolate)
 
+    print("x_interpolate")
+    print(x_interpolate)
+
+    print("y_interpolate")
+    print(y_interpolate)
+
+    print("lenth")
+    print(len(y_interpolate))
+
+
+    #1)一次性画图
     plt.plot(x_interpolate,y_interpolate)
 
-    #-----------计算实际误差-----------
+
+    # #2)延迟画图
+    # for num in range (len(x_interpolate)):
+    #     plt.scatter(x_interpolate[num],y_interpolate[num],s=1,c='r')
+    #     plt.pause(0.0001)
+
+
+#-----------将误差画图-----------
+
+    #-----------1.计算实际误差-----------
     error_x,error_abs = error(dataFloat)
 
     sum = 0
@@ -106,34 +146,29 @@ def result_plot(data):
     print("平均误差为")
     print(sum/len(error_abs))
 
-
-    # #-----------将误差画图-----------
-    # #创建子图像
-    # plt.subplot(212)
-
-    # #定义横纵坐标
-    # plt.xlabel("position－X")
-    # plt.ylabel("error")
     
-    # # #设置横纵坐标范围
-    # # plt.xlim((1, 5))
-    # # plt.ylim((1, 5))
 
-    # #计算实际轨迹和理想轨迹的误差
-    # error_x,error_abs = error(dataFloat)
+    #-----------2.将误差画图-----------
+    #创建子图像
+    plt.subplot(212)
+
+    #定义横纵坐标
+    plt.xlabel("step")
+    plt.ylabel("error")
     
-    # #画图
-    # plt.plot(dataFloat[:,0],error_abs)
-
-
-
     #设置横纵坐标范围
-    plt.xlim((-4, 5))
-    plt.ylim((-5, 5))
+    plt.xlim((0, 60))
+    plt.ylim((0, 2))
+
+    #计算实际轨迹和理想轨迹的误差
+    error_x,error_abs = error(dataFloat)
+
+    time = np.linspace(0,60,len(error_abs))
+
+    #1.一次性画图
+    plt.plot(time,error_abs)
 
     plt.show()
-
-
 
 
 #载入txt文件

@@ -1,6 +1,6 @@
-import numpy as np 
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+time = np.linspace(0,10,10)
 
-x = np.array([2,3,4])
-
-for num in :
-    print(x[num])
+print(time)
