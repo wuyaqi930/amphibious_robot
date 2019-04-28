@@ -1,4 +1,5 @@
-#-----------将结果画图
+#-----------将结果画图:一条正弦曲线------------
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math #数学计算相关包
@@ -65,8 +66,6 @@ def lisajous(range_x,range_y,step):
     plt.show()
 
     return position_x,position_y
-
-
 
 def result_plot(data):  
     #数据预处理
@@ -145,9 +144,7 @@ def result_plot(data):
 
     print("平均误差为")
     print(sum/len(error_abs))
-
     
-
     #-----------2.将误差画图-----------
     #创建子图像
     plt.subplot(212)
@@ -179,4 +176,6 @@ data_position = data[:,[2,3]]
 
 #画图
 result_plot(data_position)
+
+
 

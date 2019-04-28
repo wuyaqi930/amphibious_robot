@@ -67,7 +67,7 @@ class tracking_networks():
         print(self.x)
         print(self.y)
 
-        self.count = 0 #第几个目标点
+        self.count = 33 #第几个目标点
 
         #---------跟踪算法-----------
         #跟踪
@@ -197,39 +197,17 @@ class tracking_networks():
         print(distance)
 
         #如果距离满足要求（目标点＋１）
-        if distance <= 0.3:
+        if distance <= 0.25:
             self.count = self.count+1 #目标点变成下一个
 
             print("达到目标点")
 
             #运动到终点之后，归位
             #if self.count >=7 :
-            if self.count >=39 :
+            if self.count >=55 :
                 self.count = 0
-        
-        # #如果走过了（目标点+1)
-        # if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-        #     print("走过了！！！！！！！！！！！！！！！！！！")
 
-        #     print("x_now")
-        #     print(x_now)
-        #     print("x_desire")
-        #     print(x_desire)
-        #     self.count_number = self.count_number +1 
-        
-        #     if self.count_number >=2:
-        #         print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-        #         #跳转至下一个点
-        #         self.count = self.count + 1
-
-        #         #运动到终点之后，归位
-        #         #if self.count >=7 :
-        #         if self.count >=39 :
-        #             self.count = 0
-
-        #         #初始化
-        #         self.count_number = 0
-
+        #如果走过了，进入下一个点
         if 0<self.count<=15: #第一个正弦曲线
             #如果走过了（目标点+1)
             if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
@@ -251,7 +229,7 @@ class tracking_networks():
                     self.count_number = 0
         elif 16<= self.count <=27: #第一条直线
             #如果走过了（目标点+1)
-            if x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+            if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
                 print("走过了！！！！！！！！！！！！！！！！！！")
 
                 print("x_now")
@@ -270,7 +248,7 @@ class tracking_networks():
                     self.count_number = 0
         elif 28<= self.count <=43: #第二个正弦曲线
             #如果走过了（目标点+1)
-            if x_now[1] > x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
+            if x_now[1] < x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
                 print("走过了！！！！！！！！！！！！！！！！！！")
 
                 print("x_now")
