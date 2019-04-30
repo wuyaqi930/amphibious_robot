@@ -42,6 +42,8 @@ class tracking_networks():
 
         self.go_flag=0 #表示机器人运动第几步
 
+        self.stepPer = 1
+
         #初始化mpc
         self.mpc = optimize.MPC(self.x_init,self.x_desire) #初始化
         self.mpc.restore_params() #重新载入网络
@@ -67,7 +69,7 @@ class tracking_networks():
         print(self.x)
         print(self.y)
 
-        self.count = 33 #第几个目标点
+        self.count = 41#第几个目标点
 
         #---------跟踪算法-----------
         #跟踪
@@ -197,7 +199,7 @@ class tracking_networks():
         print(distance)
 
         #如果距离满足要求（目标点＋１）
-        if distance <= 0.25:
+        if distance <= 0.27:
             self.count = self.count+1 #目标点变成下一个
 
             print("达到目标点")
@@ -247,6 +249,14 @@ class tracking_networks():
                     #初始化
                     self.count_number = 0
         elif 28<= self.count <=43: #第二个正弦曲线
+
+            #调试：逃避第三十个点&第四十二个点
+            if self.count == 30 or self.count == 42 :
+                self.stepPer = 2 #一次运动步数设置为两步
+                # self.count = self.count +1 
+            else:
+                self.stepPer = 1 #一次运动步数设置为两步
+
             #如果走过了（目标点+1)
             if x_now[1] < x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
                 print("走过了！！！！！！！！！！！！！！！！！！")
@@ -265,6 +275,7 @@ class tracking_networks():
 
                     #初始化
                     self.count_number = 0
+
         elif 44<= self.count <=55: #第二条直线
             #如果走过了（目标点+1)
             if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
@@ -293,7 +304,7 @@ class tracking_networks():
         is_done.data = 0
 
         while 1:
-            if(self.go_flag<1):
+            if(self.go_flag<self.stepPer):
                 if (is_done.data==1):#静止状态
                     #连续发送五次控制量
                     for number in range(10):
@@ -319,7 +330,7 @@ class tracking_networks():
                     time.sleep(1)
 
 
-            elif(self.go_flag >= 1):
+            elif(self.go_flag >=self.stepPer):
                 #将turn_flag复位
                 self.go_flag = 0
 

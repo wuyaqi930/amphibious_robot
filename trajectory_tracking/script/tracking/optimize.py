@@ -28,8 +28,8 @@ class MPC:
         self.control_final = np.zeros((self.step, 2))  # 最终控制序列
 
         # ------------初始化参数------------
-        self.Q = 10 # 位移调节参数
-        self.P = 50  # yaw角调节参数
+        self.Q = 100 # 位移调节参数
+        self.P = 0  # yaw角调节参数
 
 
         # ------------初始化参数------------
@@ -147,30 +147,6 @@ class MPC:
 
         return final_position
 
-    # # ------------定义目标代价函数------------
-    # def objective(self, x_now, x_desire):
-    #     x_now = np.reshape(x_now, 3).astype(np.float)  # np.[1,3]转化成np.[3]
-
-    #     # #定义代价函数(考虑yaw角)
-    #     # J = self.Q*np.dot((x_now-x_desire),(x_now-x_desire).T) #二次型的样子
-
-    #     # # 定义代价函数(不考虑yaw角，只考虑ｘ和y)
-    #     # J = self.Q*np.dot((x_now[0:2]-x_desire[0:2]),(x_now[0:2]-x_desire[0:2]).T)  # 二次型的样子
-
-    #     #　这个地方有问题！！！！！！！！！！！！！！！！！！！！！
-
-    #     # yaw角误差
-    #     error_yaw = self.yawToTarget()
-
-    #     # # 定义代价函数(不考虑yaw角，只考虑ｘ和y)
-    #     # J = self.Q*np.dot((x_now[0:2]-x_desire[0:2]),(x_now[0:2]-x_desire[0:2]).T) +self.P*np.power(error_yaw,2)# 二次型的样子
-
-    #     # 定义代价函数(只考虑yaw角)
-    #     J = self.P*np.power(error_yaw,2)# 二次型的样子
-
-    #     return J
-
-
     # ------------定义目标代价函数------------
     def objective(self, x_now, x_init, x_desire): #x_now:最终位置 x_init:初始位置 x_desire:最终位置 
         x_now = np.reshape(x_now, 3).astype(np.float)  # np.[1,3]转化成np.[3]
@@ -180,6 +156,8 @@ class MPC:
 
         # yaw角误差
         error_yaw = self.yawToTarget(x_now,x_init,x_desire)
+
+
 
         # 定义代价函数(只考虑yaw角)
         J = self.P*np.power(error_yaw,2) +self.Q*error_position # 二次型的样子

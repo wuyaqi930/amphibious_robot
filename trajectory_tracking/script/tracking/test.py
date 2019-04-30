@@ -3,26 +3,6 @@ import numpy as np
 import math 
 import matplotlib.pyplot as plt #画图工具
 
-
-def lisajous(range_x,range_y,step): 
-    theta = np.arange(0,2*np.pi,step*np.pi)
-
-    position_x = -range_x*np.sin(theta)
-
-    position_y = -range_y*np.sin(2*theta)
-
-    print(position_x)
-    print(position_y)
-
-    #创建图像
-    plt.figure(1)
-
-    plt.plot(position_x,position_y)
-
-    plt.show()
-
-    return position_x,position_y
-
 def doubleSinCurve(lineStep):
     #------------创建四条曲线------------
     #第一条正弦曲线
@@ -70,3 +50,5 @@ plt.figure(1)
 plt.plot(x,y)
 
 plt.show()
+
+
