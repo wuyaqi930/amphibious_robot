@@ -1,4 +1,7 @@
 #coding=utf-8
+
+#---------------使用传统模型进行轨迹跟踪------------------
+
 #------------------导入官方package------------------
 import rospy #ros相关
 
@@ -16,7 +19,7 @@ import time
 from tf_my import euler_from_quaternion, quaternion_from_euler #将接收到的四元数转化为转角信息
 
 #------------------导入自己package------------------
-import optimize
+import optimize_tradition
 
 #全局变量赋值
 is_done=Int16()
@@ -45,7 +48,7 @@ class tracking_networks():
         self.stepPer = 1
 
         #初始化mpc
-        self.mpc = optimize.MPC(self.x_init,self.x_desire) #初始化
+        self.mpc = optimize_tradition.MPC(self.x_init,self.x_desire) #初始化
         self.mpc.restore_params() #重新载入网络
 
 #---------生成理想轨迹:正弦曲线---------
@@ -69,7 +72,7 @@ class tracking_networks():
         print(self.x)
         print(self.y)
 
-        self.count = 12#第几个目标点
+        self.count = 41#第几个目标点
 
         #---------跟踪算法-----------
         #跟踪
@@ -297,7 +300,6 @@ class tracking_networks():
                     self.count_number = 0
         else :
             self.count = 0
-
 
     def move(self,control_final):
         #初始化

@@ -6,7 +6,7 @@ np.set_printoptions(threshold=np.inf)
 
 import torch.utils.data as Data
 from sklearn.model_selection import train_test_split
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class neural_network:
 
@@ -15,7 +15,7 @@ class neural_network:
 
         #初始化赋值
         self.BATCH_SIZE = BATCH_SIZE #训练批处理size
-        self.epoch = 100 #训练层数 
+        self.epoch = 100 #训练层数
 
         #------------1.1 数据读取------------
         #生成输入数据
@@ -129,6 +129,8 @@ class neural_network:
                     torch.nn.Linear(n_hidden, n_hidden),
                     torch.nn.LeakyReLU(),
                     torch.nn.Linear(n_hidden, n_hidden),
+                    torch.nn.LeakyReLU(),
+                    torch.nn.Linear(n_hidden, n_hidden),
                     torch.nn.LeakyReLU()
                 )
 
@@ -152,25 +154,26 @@ class neural_network:
                 out = self.out(x)
                 return out
 
-        net = Net(n_feature=5, n_hidden=128, n_output=3) 
-
+        net = Net(n_feature=5, n_hidden=64, n_output=3)
+        net.load_state_dict(torch.load('xiao.pkl'))
         print(net)
 
         #----------------2.4定义优化方法&定义损失函数-----------------
 
         ##使用“随机梯度下降法”进行参数优化
-        #optimizer = torch.optim.SGD(net.parameters(), lr=0.005)  # 传入 net 的所有参数, 学习率
-
+        optimizer = torch.optim.SGD(net.parameters(), lr=0.01)  # 传入 net 的所有参数, 学习率
+        #
         #使用“ADAM”进行参数优化
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00005) # 传入 net 的所有参数, 学习率
+        # optimizer = torch.optim.Adam(net.parameters(), lr=0.00005) # 传入 net 的所有参数, 学习率
+        # optimizer = torch.optim.Adam(net.parameters(), lr=0.00005)  # 传入 net 的所有参数, 学习率
 
         #定义损失函数，计算均方差
         loss_func = torch.nn.MSELoss()      # 预测值和真实值的误差计算公式 (均方差)
         #loss_func = torch.nn.L1Loss()
 
         #----------------2.5使用cuda进行GPU计算-----------------
-        net.cuda()
-        loss_func.cuda()
+        net.to(device)
+        loss_func.to(device)
 
         #----------------2.6具体训练过程-----------------
         
@@ -180,10 +183,10 @@ class neural_network:
             for step, (batch_x, batch_y) in enumerate(loader_train):
                 
                 #产生prediction
-                prediction = net( batch_x.cuda() )     # input x and predict based on x
+                prediction = net( batch_x.to(device) )     # input x and predict based on x
 
                 #计算loss
-                loss = loss_func(prediction, batch_y.cuda())     # must be (1. nn output, 2. target)
+                loss = loss_func(prediction, batch_y.to(device))     # must be (1. nn output, 2. target)
 
                 print ("训练集loss")
                 print (loss)
@@ -207,20 +210,22 @@ class neural_network:
                 optimizer.step()        # apply gradients
 
                 #计算误差绝对值,并储存在data_plot当中
-                percent = prediction - batch_y.cuda() #直接计算误差大小
+                percent = prediction - batch_y.to(device) #直接计算误差大小
 
                 print("训练集error")
-                print(percent)
+                # print(torch.cat((percent, batch_x), 1))
+                print(percent[2])
 
                 self.error_train[int((epoch*self.one_train_times)+step),:] = percent[0,:]  #将每一个批次的一个误差记录一下
+                torch.save(net.state_dict(), 'xiao.pkl')
 
-            #将测试集loss画出来(一次性载入所有数据）
+                #将测试集loss画出来(一次性载入所有数据）
             for step,(batch_x, batch_y) in enumerate(loader_test):
                 #产生prediction
-                prediction = net( batch_x.cuda() )
+                prediction = net( batch_x.to(device) )
 
                 #计算总误差
-                error_test = prediction - batch_y.cuda() #计算绝对值误差 4157*3
+                error_test = prediction - batch_y.to(device) #计算绝对值误差 4157*3
 
                 #取总误差绝对值
                 error_test_abs = torch.abs(error_test)
@@ -235,7 +240,7 @@ class neural_network:
                 self.error_test[epoch,:]= error_sum 
 
                 #计算总loss
-                loss = loss_func(prediction, batch_y.cuda())
+                loss = loss_func(prediction, batch_y.to(device))
 
                 print("测试集loss")
                 print(loss)
@@ -245,7 +250,7 @@ class neural_network:
 
 
         #将训练完的网络保存
-        torch.save(net.state_dict(), 'Params_2019_4_8.pkl')   
+        torch.save(net.state_dict(), 'xiao.pkl')   
 
     #----------------3.将函数loss画出来----------------
     def plot_loss(self):
@@ -338,7 +343,9 @@ class neural_network:
                     torch.nn.Linear(n_hidden, n_hidden),
                     torch.nn.LeakyReLU(),
                     torch.nn.Linear(n_hidden, n_hidden),
-                    torch.nn.LeakyReLU()
+                    torch.nn.LeakyReLU(),
+                    torch.nn.Linear(n_hidden, n_hidden),
+                    torch.nn.LeakyReLU(),
                 )
                 self.out = torch.nn.Linear(n_hidden, n_output)
             def forward(self, x):
@@ -347,10 +354,10 @@ class neural_network:
                 return out
             
         #新建net
-        net = Net(n_feature=5, n_hidden=128, n_output=3) 
+        net = Net(n_feature=5, n_hidden=64, n_output=3)
 
         #载入参数
-        net.load_state_dict(torch.load('params.pkl'))
+        net.load_state_dict(torch.load('xiao.pkl'))
 
         #显示网络
         print("net_restore")
@@ -362,7 +369,7 @@ class neural_network:
         net.cuda() 
 
         loss_func = torch.nn.MSELoss()
-        loss_func.cuda()
+        loss_func.to(device)
 
         #-----------------测试误差-----------------
 
@@ -376,10 +383,10 @@ class neural_network:
         #将测试集loss画出来(一次性载入所有数据）
         for step,(batch_x, batch_y) in enumerate(loader_test):
             #产生prediction
-            prediction = net( batch_x.cuda() )
+            prediction = net( batch_x.to(device) )
 
             #计算总误差
-            error_test = prediction - batch_y.cuda() #计算绝对值误差 4157*3
+            error_test = prediction - batch_y.to(device) #计算绝对值误差 4157*3
 
             #计算每项平均误差
             error_test_average = torch.sum(error_test,0)/self.test_data_number
@@ -406,7 +413,7 @@ class neural_network:
             print(error_sum )
 
             #计算总loss
-            loss = loss_func(prediction, batch_y.cuda())
+            loss = loss_func(prediction, batch_y.to(device))
 
             print("测试集loss")
             print(loss)
@@ -421,7 +428,7 @@ if __name__ == '__main__':
     train_data = np.load("data_final_2019_4_1.npy")
 
     #网络训练 
-    dnn = neural_network(train_data,20)
+    dnn = neural_network(train_data,50)
     dnn.dnn()
 
     #将误差函数画出来

@@ -403,6 +403,7 @@ if __name__=="__main__":
             pub7.publish(1)
             v.linear.x=0
             v.angular.z=0
+            
     	if(v.linear.x==2.0):
             
             six_forward()

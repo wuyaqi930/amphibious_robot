@@ -6,6 +6,8 @@ np.set_printoptions(threshold=np.inf)
 
 import torch.utils.data as Data
 from sklearn.model_selection import train_test_split
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 
 class neural_network:
@@ -117,9 +119,8 @@ class neural_network:
         loss_func = torch.nn.MSELoss()      # 预测值和真实值的误差计算公式 (均方差)
 
         #----------------2.5使用cuda进行GPU计算-----------------
-        net.cuda()
-        loss_func.cuda()
-
+        net.to(device)
+        loss_func.to(device)
         #----------------2.6具体训练过程-----------------
         
         # 训练集
@@ -130,10 +131,10 @@ class neural_network:
                 #print(batch_x.cuda())
                 
                 #产生prediction
-                prediction = net( batch_x.cuda() )     # input x and predict based on x
+                prediction = net( batch_x.to(device) )     # input x and predict based on x
 
                 #计算loss
-                loss = loss_func(prediction, batch_y.cuda())     # must be (1. nn output, 2. target)
+                loss = loss_func(prediction, batch_y.to(device))     # must be (1. nn output, 2. target)
 
                 print ("loss")
                 print (loss)
@@ -148,7 +149,7 @@ class neural_network:
 
                 #计算误差百分数,并储存在data_plot当中
                 #percent_1 = 100*(prediction - 10*batch_y.cuda())/10*batch_y.cuda()
-                percent = prediction - batch_y.cuda() #直接计算误差大小
+                percent = prediction - batch_y.to(device) #直接计算误差大小
 
                 #print("error")
                 #print(percent)
@@ -160,10 +161,10 @@ class neural_network:
         for epoch in range(1):
             for step, (batch_x, batch_y) in enumerate(loader_test):
                 #产生prediction
-                prediction = net( batch_x.cuda() )     # input x and predict based on x
+                prediction = net( batch_x.to(device) )     # input x and predict based on x
 
                 #计算loss
-                loss = loss_func(prediction, batch_y.cuda())     # must be (1. nn output, 2. target)
+                loss = loss_func(prediction, batch_y.to(device))     # must be (1. nn output, 2. target)
 
                 #print ("loss_测试")
                 #print (loss)
@@ -172,7 +173,7 @@ class neural_network:
                 self.loss_test[step,:] = loss
 
                 #直接计算误差大小
-                percent = prediction - batch_y.cuda() 
+                percent = prediction - batch_y.to(device)
 
                 #print("error")
                 #print(percent)
@@ -180,7 +181,7 @@ class neural_network:
                 self.error_test[step,:] = percent[0,:]
 
         #将训练完的网络保存
-        torch.save(net.state_dict(), 'params.pkl')   
+        torch.save(net.state_dict(), 'xiao.pkl')   
 
     #----------------3.将函数loss画出来----------------
     def plot_loss(self):
@@ -286,7 +287,7 @@ class neural_network:
         net = Net(n_feature=5, n_hidden=64, n_output=3) 
 
         #载入参数
-        net.load_state_dict(torch.load('params.pkl'))
+        net.load_state_dict(torch.load('xiao.pkl'))
 
         #显示网络
         print("net_restore")

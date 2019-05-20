@@ -95,7 +95,7 @@ def drawError(error,typeOfCurve):
     
     #设置横纵坐标范围
     plt.xlim((0, len(error)+1))
-    plt.ylim((0, 2))
+    plt.ylim((0, 1))
 
     step = np.arange(1,len(error)+1,1)
 
@@ -224,47 +224,49 @@ def draw(data):
     plt.show()
 
 #载入txt文件
-data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/success_4_29.txt',dtype='str',skiprows=1,delimiter=",")
+data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/tracking_pid.txt',dtype='str',skiprows=1,delimiter=",")
 
 #取横纵坐标
 data_position = data[:,[2,3]]
 
 #滤波
-dataFloat = data_filter(data_position,7855)
+dataFloat = data_filter(data_position,1070)
 
-#画任意一段曲线
-draw(dataFloat[310:450,:])
+# #画任意一段曲线
+# draw(dataFloat[928:965,:])
 
 
-#第一段曲线 0:160 160:310 
+# 第一段曲线 540:675 540:580 580:605 605:647 647:675 
+# 第二段曲线 810:965 810:855 855:883 883:928 928:965
 
 #-------------分别画出四条曲线-------------
 
-plt.figure(1)
+# plt.figure(1)
 
-#第一条正弦
-drawSinCurve(dataFloat[0:60,:],1)
+# #第一条正弦
+# drawSinCurve(dataFloat[810:855,:],1)
 
-# #第一条直线
-# drawLineCurve(dataFloat[40:120,:],1,0.05)
+# # 第一条直线
+# # drawLineCurve(dataFloat[580:605,:],1,0.05)
 
-# #第二条正弦
-# drawSinCurve(dataFloat[120:200,:],2)
+# # 第二条正弦
+# # drawSinCurve(dataFloat[605:647,:],2)
 
-# #第二条直线
-# drawLineCurve(dataFloat[200:250,:],2,0.05)
+# # #第二条直线
+# # drawLineCurve(dataFloat[647:675,:],2,0.05)
 
-# #第三条正弦
-# drawSinCurve(dataFloat[250:310,:],1)
+# # #第三条正弦
+# # drawSinCurve(dataFloat[250:310,:],1)
 
-# #第三条直线
-# drawLineCurve(dataFloat[310:350,:],1,0.05)
+# # #第三条直线
+# # drawLineCurve(dataFloat[310:350,:],1,0.05)
 
-plt.show()
+# plt.show()
 
-# error = errorLineCurve(dataFloat[310:350,:],1)
+error = errorSinCurve(dataFloat[810:855],1)
+# error = errorLineCurve(dataFloat[855:883,:],1)
 
-# drawError(error,1)
+drawError(error,1)
 
 
 
