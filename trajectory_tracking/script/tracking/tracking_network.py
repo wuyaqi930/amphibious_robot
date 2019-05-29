@@ -44,6 +44,8 @@ class tracking_networks():
 
         self.stepPer = 1
 
+        self.point_to_target = np.zeros(2) #当前点和目标点之间的向量
+
         #初始化mpc
         self.mpc = optimize.MPC(self.x_init,self.x_desire) #初始化
         self.mpc.restore_params() #重新载入网络
@@ -69,7 +71,7 @@ class tracking_networks():
         print(self.x)
         print(self.y)
 
-        self.count = 12#第几个目标点
+        self.count = 10#第几个目标点
 
         #---------跟踪算法-----------
         #跟踪
@@ -180,14 +182,60 @@ class tracking_networks():
         #传入实际位置＋理想位置
         self.mpc.input_parameters(self.x_init,self.x_desire) #把实际的yaw角带进去
 
-        #得到最优控制序列
-        self.control_final = self.mpc.optimize() 
-
-        #将控制量发布出去
-        self.move(self.control_final)
+        #进行运动
+        self.moveRobot()
 
         #判断是否到达目标点
         self.target_point(self.x_desire,self.positions)
+
+    #控制两栖机器人进行运动(重要函数)
+    def moveRobot(self):
+        #-------直线的时候:先转到目标角度再用MPC--------
+        #计算实际位置和理想点之间的向量 :目标点-当前点
+
+        self.point_to_target[0] = self.x[self.count]-self.positions[0] #方向向量x
+        self.point_to_target[1] = self.y[self.count]-self.positions[1] #方向向量y
+
+        #求该方向向量的yaw角
+        self.yaw_point_to_target = self.angle(self.point_to_target[0],self.point_to_target[1])
+
+        #转动到期望的角度 
+        #计算理想角度和实际角度之间的误差: 理想角度-实际角度
+        error_angle = np.abs(self.yaw_point_to_target-self.euler_angle[2])
+
+        if error_angle > np.pi:
+            error_angle = 2*np.pi - error_angle 
+        
+        print("error_angle")
+        print(error_angle)
+
+        # if not error_angle < 2*np.pi/15:
+        if not error_angle < np.pi/15:
+            self.turn_to_target_angle(self.yaw_point_to_target)
+        else:
+            #得到最优控制序列
+            self.control_final = self.mpc.optimize() 
+
+            #将控制量发布出去
+            self.move(self.control_final)
+
+        # if 16<= self.count <=27 or 44<= self.count <=55: #的时候直线
+        #     #转动到期望的角度 
+        #     if not (self.yaw_point_to_target - np.pi/15 < self.euler_angle[2] < self.yaw_point_to_target + np.pi/15 ): #没在规定角度之内
+        #         print("转动到期望的角度")
+        #         self.turn_to_target_angle(self.yaw_point_to_target)
+        #     else:
+        #         #得到最优控制序列
+        #         self.control_final = self.mpc.optimize() 
+
+        #         #将控制量发布出去
+        #         self.move(self.control_final)
+        # else:
+        #     #得到最优控制序列
+        #     self.control_final = self.mpc.optimize() 
+
+        #     #将控制量发布出去
+        #     self.move(self.control_final)
 
     def target_point(self,x_desire,x_now):
         print("target to position!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -199,7 +247,7 @@ class tracking_networks():
         print(distance)
 
         #如果距离满足要求（目标点＋１）
-        if distance <= 0.27:
+        if distance <= 0.25:
             self.count = self.count+1 #目标点变成下一个
 
             print("达到目标点")
@@ -209,95 +257,95 @@ class tracking_networks():
             if self.count >=55 :
                 self.count = 0
 
-        #如果走过了，进入下一个点
-        if 0<self.count<=15: #第一个正弦曲线
-            #如果走过了（目标点+1)
-            if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-                print("走过了！！！！！！！！！！！！！！！！！！")
+        #　调试：取消跳过下一个点
+        # #如果走过了，进入下一个点
+        # if 0<self.count<=15: #第一个正弦曲线
+        #     #如果走过了（目标点+1)
+        #     if x_now[0] < x_desire[0] and x_now[1] < x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #         print("走过了！！！！！！！！！！！！！！！！！！")
 
-                print("x_now")
-                print(x_now)
-                print("x_desire")
-                print(x_desire)
+        #         print("x_now")
+        #         print(x_now)
+        #         print("x_desire")
+        #         print(x_desire)
 
-                self.count_number = self.count_number +1 
+        #         self.count_number = self.count_number +1 
             
-                if self.count_number >=2:
-                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-                    #跳转至下一个点
-                    self.count = self.count + 1
+        #         if self.count_number >=2:
+        #             print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #             #跳转至下一个点
+        #             self.count = self.count + 1
 
-                    #初始化
-                    self.count_number = 0
-        elif 16<= self.count <=27: #第一条直线
-            #如果走过了（目标点+1)
-            if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-                print("走过了！！！！！！！！！！！！！！！！！！")
+        #             #初始化
+        #             self.count_number = 0
+        # elif 16<= self.count <=27: #第一条直线
+        #     #如果走过了（目标点+1)
+        #     if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #         print("走过了！！！！！！！！！！！！！！！！！！")
 
-                print("x_now")
-                print(x_now)
-                print("x_desire")
-                print(x_desire)
+        #         print("x_now")
+        #         print(x_now)
+        #         print("x_desire")
+        #         print(x_desire)
                 
-                self.count_number = self.count_number +1 
+        #         self.count_number = self.count_number +1 
             
-                if self.count_number >=2:
-                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-                    #跳转至下一个点
-                    self.count = self.count + 1
+        #         if self.count_number >=2:
+        #             print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #             #跳转至下一个点
+        #             self.count = self.count + 1
 
-                    #初始化
-                    self.count_number = 0
-        elif 28<= self.count <=43: #第二个正弦曲线
+        #             #初始化
+        #             self.count_number = 0
+        # elif 28<= self.count <=43: #第二个正弦曲线
 
-            #调试：逃避第三十个点&第四十二个点
-            if self.count == 30 or self.count == 42 :
-                self.stepPer = 2 #一次运动步数设置为两步
-                # self.count = self.count +1 
-            else:
-                self.stepPer = 1 #一次运动步数设置为两步
+        #     #调试：逃避第三十个点&第四十二个点
+        #     if self.count == 30 or self.count == 42 :
+        #         self.stepPer = 2 #一次运动步数设置为两步
+        #         # self.count = self.count +1 
+        #     else:
+        #         self.stepPer = 1 #一次运动步数设置为两步
 
-            #如果走过了（目标点+1)
-            if x_now[1] < x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
-                print("走过了！！！！！！！！！！！！！！！！！！")
+        #     #如果走过了（目标点+1)
+        #     if x_now[1] < x_desire[1] and x_now[0] > x_desire[0]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #         print("走过了！！！！！！！！！！！！！！！！！！")
 
-                print("x_now")
-                print(x_now)
-                print("x_desire")
-                print(x_desire)
+        #         print("x_now")
+        #         print(x_now)
+        #         print("x_desire")
+        #         print(x_desire)
                 
-                self.count_number = self.count_number +1 
+        #         self.count_number = self.count_number +1 
             
-                if self.count_number >=2:
-                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-                    #跳转至下一个点
-                    self.count = self.count + 1
+        #         if self.count_number >=2:
+        #             print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #             #跳转至下一个点
+        #             self.count = self.count + 1
 
-                    #初始化
-                    self.count_number = 0
+        #             #初始化
+        #             self.count_number = 0
 
-        elif 44<= self.count <=55: #第二条直线
-            #如果走过了（目标点+1)
-            if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
-                print("走过了！！！！！！！！！！！！！！！！！！")
+        # elif 44<= self.count <=55: #第二条直线
+        #     #如果走过了（目标点+1)
+        #     if x_now[1] > x_desire[1]: # x_now[0]=x坐标　x_now[1]=y坐标
+        #         print("走过了！！！！！！！！！！！！！！！！！！")
 
-                print("x_now")
-                print(x_now)
-                print("x_desire")
-                print(x_desire)
+        #         print("x_now")
+        #         print(x_now)
+        #         print("x_desire")
+        #         print(x_desire)
                 
-                self.count_number = self.count_number +1 
+        #         self.count_number = self.count_number +1 
             
-                if self.count_number >=2:
-                    print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
-                    #跳转至下一个点
-                    self.count = self.count + 1
+        #         if self.count_number >=2:
+        #             print("跳转到下一个点！！！！！！！！！！！！！！！！！！")
+        #             #跳转至下一个点
+        #             self.count = self.count + 1
 
-                    #初始化
-                    self.count_number = 0
-        else :
-            self.count = 0
-
+        #             #初始化
+        #             self.count_number = 0
+        # else :
+        #     self.count = 0
 
     def move(self,control_final):
         #初始化
@@ -418,6 +466,176 @@ class tracking_networks():
 
         #将四元素转化成欧拉角
         self.euler_angle = euler_from_quaternion(self.quaternion)
+
+    #求实时和期望的夹角
+    def angle(self,point_x,point_y):
+        x=np.array([-1,0])
+        y=np.array([point_x,point_y])
+        # 两个向量
+        Lx=np.sqrt(x.dot(x))
+        Ly=np.sqrt(y.dot(y))
+        #相当于勾股定理，求得斜线的长度
+        cos_angle=x.dot(y)/(Lx*Ly)
+        #求得cos_sita的值再反过来计算，绝对长度乘以cos角度为矢量长度，初中知识。。
+        # print(cos_angle)
+        angle=np.arccos(cos_angle)
+        angle2=angle*360/2/np.pi
+        #变为角度
+        # print(angle2)
+
+        #判断角度的正负
+        if point_y > 0: 
+            return -angle
+        else :
+            return angle 
+        #x.dot(y) =  y=∑(ai*bi)
+
+    #运动---转动至期望角度
+    def turn_to_target_angle(self,object_angle):
+        # #初始化
+        # is_done.data = 0
+
+        #调试
+        print("理想角度是")
+        print(object_angle)
+
+        print("实际角度是")
+        print(self.euler_angle[2])
+
+        #将角度全部变为正数
+        object_angle_rect=object_angle+np.pi
+        euler_angle_rect=self.euler_angle[2]+np.pi
+
+        #目标角度和实际角度做差（取绝对值）
+        error_angle = np.abs((object_angle_rect-euler_angle_rect))
+
+        #如果有误差转动，没误差不转动
+        if error_angle>np.pi:
+            #error_angle_rect = error_angle-np.pi
+            error_angle_rect = 2*np.pi-error_angle
+        else:
+            error_angle_rect = error_angle
+
+        print("两个角度之间的误差是")
+        print(error_angle_rect)
+
+        #误差要是大于pi/15，就转动，要是小于pi/15，就不转动
+        # if not error_angle_rect < 2*np.pi/15:
+        if not error_angle_rect < np.pi/15:
+            if error_angle<=np.pi:
+                if euler_angle_rect<object_angle_rect:#<target 逆时针
+                    if(is_done.data==1):
+                        #print("静止中")
+
+                        #声明变量
+                        u = np.zeros(2) #控制量声明
+
+                        #赋值角速度
+                        u[0] = 0
+                        u[1] = -1
+                        
+                        #发布线速度消息:发送数次
+                        for num in range(5):
+                            self.data_publish(u)
+
+                        #暂停一秒，让机器人充分运动
+                        time.sleep(1)
+                        
+                        #归零
+                        is_done.data = 0
+
+                        print("逆时针旋转")
+                
+                    elif(is_done.data == 0):
+                        print("运动中")
+                if euler_angle_rect>=object_angle_rect:#>target 顺时针
+                    if(is_done.data==1):
+                        #print("静止中")
+
+                        #声明变量
+                        u = np.zeros(2) #控制量声明
+
+                        #赋值角速度
+                        u[0] = 0
+                        u[1] = 1
+                        
+                        #发布线速度消息:发送数次
+                        for num in range(5):
+                            self.data_publish(u)
+
+                        #暂停一秒，让机器人充分运动
+                        time.sleep(1)
+                        
+                        #归零
+                        is_done.data = 0
+
+                        print("顺时针旋转")
+                
+                    elif(is_done.data == 0):
+                        print("运动中")
+
+            if error_angle>np.pi:
+                if euler_angle_rect>=object_angle_rect:#>target 逆时针
+                    if(is_done.data==1):
+                        #print("静止中")
+
+                        #声明变量
+                        u = np.zeros(2) #控制量声明
+
+                        #赋值角速度
+                        u[0] = 0
+                        u[1] = -1
+                        
+                        #发布线速度消息:发送数次
+                        for num in range(5):
+                            self.data_publish(u)
+
+                        #暂停一秒，让机器人充分运动
+                        time.sleep(1)
+                        
+                        #归零
+                        is_done.data = 0
+
+                        print("逆时针旋转")
+                
+                    elif(is_done.data == 0):
+                        print("运动中")
+                if euler_angle_rect<object_angle_rect:#<target 顺时针
+                    if(is_done.data==1):
+                        #print("静止中")
+
+                        #声明变量
+                        u = np.zeros(2) #控制量声明
+
+                        #赋值角速度
+                        u[0] = 0
+                        u[1] = 1
+                        
+                        #发布线速度消息:发送数次
+                        for num in range(5):
+                            self.data_publish(u)
+
+                        #暂停一秒，让机器人充分运动
+                        time.sleep(1)
+                        
+                        #归零
+                        is_done.data = 0
+
+                        print("顺时针旋转")
+                
+                    elif(is_done.data == 0):
+                        print("运动中")
+        else:
+            print("没有误差hhhhhhh")
+
+            # #已经控制完一轮了
+            # self.control_once_flag = 0
+
+            #模式切换成功归零
+            
+            #表明转换到目标角度之间成功
+            self.turn_to_target_angle_success = 1
+
 
 #创建主函数
 if __name__ == '__main__':

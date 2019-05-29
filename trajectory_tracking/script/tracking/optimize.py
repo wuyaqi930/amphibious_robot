@@ -28,7 +28,7 @@ class MPC:
         self.control_final = np.zeros((self.step, 2))  # 最终控制序列
 
         # ------------初始化参数------------
-        self.Q = 100 # 位移调节参数
+        self.Q = 10 # 位移调节参数
         self.P = 0  # yaw角调节参数
 
 

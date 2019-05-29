@@ -98,10 +98,10 @@ class tracking_sin():
         print("distance")
         print(self.distance)
 
-        if self.distance > 0.15 : #误差大于0.1米
+        if self.distance > 0.25 : #误差大于0.1米
             print("缩小误差")
             #转动到期望的角度 
-            if not (self.yaw_point_to_target - np.pi/5 < self.euler_angle[2] < self.yaw_point_to_target + np.pi/5 ): #没在规定角度之内
+            if not (self.yaw_point_to_target - np.pi/15 < self.euler_angle[2] < self.yaw_point_to_target + np.pi/15 ): #没在规定角度之内
                 print("转动到期望的角度")
                 self.turn_to_target_angle(self.yaw_point_to_target)
 

@@ -176,7 +176,7 @@ def drawSinCurve(dataOfCurve,typeOfCurve):
     #1)一次性画图
     # plt.plot(x_interpolate,y_interpolate,color='blue',linestyle='dashed')
     # plt.plot(x_interpolate,y_interpolate,color='blue')
-    plt.plot(x_interpolate,y_interpolate)
+    plt.plot(x_interpolate,y_interpolate,color='blue')
 
 #画直线
 def drawLineCurve(dataOfCurve,typeOfCurve,lineStep):
@@ -231,6 +231,9 @@ def drawPoint(data):
     # #声明图像
     # plt.figure(1)
 
+    print("data")
+    print(data)
+
     #声明横纵坐标
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -257,7 +260,7 @@ def drawPointLine(data):
     plt.ylim((-5, 5))
     
     # plt.plot(data[:,0],data[:,1],color='blue', marker='s', linestyle='dashed',markeredgecolor='r',markerfacecolor='r',linewidth=1, markersize=3)
-    plt.plot(data[:,0],data[:,1],'bo-',markersize=3,markeredgecolor='r',markerfacecolor='r')
+    plt.plot(data[:,0],data[:,1],'b-')
 
     # plt.show()
 
@@ -290,7 +293,7 @@ def BetweenCurve(num):
 
         drawPointLine(point)
 
-    else:
+    elif num == 2:
         #1-2连接处
         point = []
         point.append(list(data_network[1932]))
@@ -319,6 +322,39 @@ def BetweenCurve(num):
         point = []
         point.append(list(data_network[2007]))
         point.append(list(data_network[1885]))
+        point = np.array(point)
+
+        drawPointLine(point)
+
+    else:# 647:770: 647:682 682:706 706:747 747:770
+        #1-2连接处
+        point = []
+        point.append(list(data_pid_network[681]))
+        point.append(list(data_pid_network[682]))
+        point = np.array(point)
+
+        drawPointLine(point)
+
+        #2-3连接处
+        point = []
+        point.append(list(data_pid_network[705]))
+        point.append(list(data_pid_network[706]))
+        point = np.array(point)
+
+        drawPointLine(point)
+
+        #3-4连接处
+        point = []
+        point.append(list(data_pid_network[746]))
+        point.append(list(data_pid_network[747]))
+        point = np.array(point)
+
+        drawPointLine(point)
+
+        #4-1连接处
+        point = []
+        point.append(list(data_pid_network[768]))
+        point.append(list(data_pid_network[647]))
         point = np.array(point)
 
         drawPointLine(point)
@@ -465,19 +501,26 @@ def ComputeError(dataOfError):
 #读取数据
 data_network = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/success_4_29.txt',dtype='str',skiprows=1,delimiter=",")
 data_pid = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/5_22_0.1_pi_5.txt',dtype='str',skiprows=1,delimiter=",")
+data_pid_network = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/tracking_pid_dnn_3.txt',dtype='str',skiprows=1,delimiter=",")
 
 #取横纵坐标
 data_network = data_network[:,[2,3]]
 data_pid = data_pid[:,[2,3]]
+data_pid_network = data_pid_network[:,[2,3]]
+
 
 #滤波
 data_network = data_filter(data_network,7855)
 data_pid = data_filter(data_pid,3971)
+data_pid_network = data_filter(data_pid_network,2818)
 
+print("data_pid_network")
+print(data_pid_network.shape)
 
 #-----------画整体轨迹图-----------
 plt.figure(1)
 
+# #-----------任务一-----------
 # #-----------描点-----------
 # # 第一条正弦
 # drawPoint(data_pid[1465:1570,:])
@@ -511,6 +554,7 @@ plt.figure(1)
 # BetweenCurve(1)
 
 
+# #-----------任务二-----------
 # #-----------描点----------
 # drawPoint(data_network[1885:2008,:])
 
@@ -528,59 +572,94 @@ plt.figure(1)
 # # 第二条直线
 # drawLineCurve(data_network[1985:2008,:],2,0.05)
 
-# #-----------补充两点之间的连线-----------
-# BetweenCurve(2)
+
+# #-----------任务三-----------
+# 注释：圈数：647:779: 647:682 682:706 706:747 747:769
+# # #-----------描点----------
+# drawPoint(data_pid_network[647:769,:]) 
+
+# #-----------画pid+network轨迹-----------
+# # 第一条正弦
+# drawSinCurve(data_pid_network[647:682,:],1)
+
+# # 第一条直线
+# drawLineCurve(data_pid_network[682:706,:],1,0.05)
+
+# # 第二条正弦
+# drawSinCurve(data_pid_network[706:747,:],2)
+
+# # 第二条直线
+# drawLineCurve(data_pid_network[747:769,:],2,0.05)
+
+# # #-----------补充两点之间的连线-----------
+# BetweenCurve(3)
+
 
 #-----------画误差图-----------
 # 第一条正弦
 # error_pid = errorSinCurve(data_pid[1465:1570,:],1)
-# error_networks = errorSinCurve(data_network[1885:1931,:],1)
+# error_networks = errorSinCurve(data_network[1885:1931,:],1
+# error_pid_networks = errorSinCurve(data_pid_network[647:682,:],1)
 
 # 第一条直线
 # error_pid = errorLineCurve(data_pid[1575:1638,:],1)
 # error_networks = errorLineCurve(data_network[1931:1950,:],1)
+# error_pid_networks = errorLineCurve(data_pid_network[682:706,:],1)
+
 
 # 第二条正弦
 # error_pid = errorSinCurve(data_pid[1675:2132,:],2)
 # error_networks = errorSinCurve(data_network[1950:1985,:],2)
+# error_pid_networks = errorSinCurve(data_pid_network[706:747,:],2)
 
 # 第二条直线
 # error_pid = errorLineCurve(data_pid[2131:2181,:],2)
-error_networks = errorLineCurve(data_network[1985:2008,:],2)
+# error_networks = errorLineCurve(data_network[1985:2008,:],2)
+# error_pid_networks = errorLineCurve(data_pid_network[747:769,:],2)
 
 # drawError(error_pid,2)
 # drawError(error_networks,2)
+# drawError(error_pid_networks,2)
 
-# 计算实际的误差
-average,max,min,step,perfectCount = ComputeError(error_networks )
+# # 计算实际的误差
+# average,max,min,step,perfectCount = ComputeError(error_pid_networks)
 
-print("平均数")
-print(average)
+# print("平均数")
+# print(average)
 
-print("最大值")
-print(max)
+# print("最大值")
+# print(max)
 
-print("最小值")
-print(min)
+# print("最小值")
+# print(min)
 
-print("总步数")
-print(step)
+# print("总步数")
+# print(step)
 
-print("优秀率")
-print(perfectCount)
+# print("优秀率")
+# print(perfectCount)
+
 #-----------画轨迹对比图-----------
-# #正弦轨迹
+# #第一条正弦
+# CompareSinCurve(data_pid[1465:1570,:],1,1)
+# CompareSinCurve(data_network[1950:1985,:],2,2)
+# CompareSinCurve(data_pid_network[647:682,:],1,2)
+
+# #第二条正弦
 # CompareSinCurve(data_pid[1675:2132,:],2,1)
 # CompareSinCurve(data_network[1950:1985,:],2,2)
+# CompareSinCurve(data_pid_network[706:747,:],2,2)
 
 #直线轨迹
 # #第一条
 # CompareLineCurve(data_pid[1575:1638,:],1,0.05,1)
 # CompareLineCurve(data_network[1931:1950,:],1,0.05,2)
+# CompareLineCurve(data_pid_network[682:706,:],1,0.05,2)
 
 # #第二条
 # CompareLineCurve(data_pid[2131:2181,:],2,0.05,1)
 # CompareLineCurve(data_network[1985:2008,:],2,0.05,2)
+# CompareLineCurve(data_pid_network[747:769,:],2,0.05,2)
 
 plt.show()
 

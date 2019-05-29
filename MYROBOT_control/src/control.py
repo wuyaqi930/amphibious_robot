@@ -413,7 +413,7 @@ if __name__=="__main__":
 
         pub7.publish(1)
         
-   
+    
     # print(k_leg)
     # v1=[pi*17/18,pi/18,pi*17/18,pi/18,pi*17/18,pi/18]
     # v1=[pi*17/9,pi/9,pi*17/9,pi/9,pi*17/9,pi/9]

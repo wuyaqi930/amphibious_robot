@@ -225,14 +225,17 @@ def draw(data):
 
 #载入txt文件
 # data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/5_22_0.1_pi_5.txt',dtype='str',skiprows=1,delimiter=",")
-data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/success_4_29.txt',dtype='str',skiprows=1,delimiter=",")
+# data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/success_4_29.txt',dtype='str',skiprows=1,delimiter=",")
+data = np.loadtxt('/home/qi/catkin_ws/src/amphibious_robot/trajectory_tracking/script/result/result/txt/tracking_pid_dnn_3.txt',dtype='str',skiprows=1,delimiter=",")
+
 
 #取横纵坐标
 data_position = data[:,[2,3]]
 
 #滤波
 # dataFloat = data_filter(data_position,3971)
-dataFloat = data_filter(data_position,7855)
+# dataFloat = data_filter(data_position,7855)
+dataFloat = data_filter(data_position,2818)
 
 
 #-------------数据集划分-------------
@@ -263,6 +266,10 @@ dataFloat = data_filter(data_position,7855)
 # 第三圈：1455:2180 1455:1610 1610:1675 1675:2130 2130:2180
 # 第四圈：2180:2710
 
+#pid+dnn时候
+# tracking_pid_dnn_3.txt
+# 圈数：647:770: 647:682 682:706 706:747 747:770
+
 
 
 
@@ -271,7 +278,7 @@ dataFloat = data_filter(data_position,7855)
 plt.figure(1)
 
 #画任意一段曲线
-draw(dataFloat[5435:5580,:])
+draw(dataFloat[747:770,:])
 
 
 # # ----------pid时候的----------
@@ -287,27 +294,41 @@ draw(dataFloat[5435:5580,:])
 # # 第二条直线
 # drawLineCurve(dataFloat[2130:2180,:],2,0.05)
 
-# ----------network时候的----------
+# # ----------network时候的----------
+# # 第一条正弦
+# drawSinCurve(dataFloat[1885:1930,:],1)
+
+# # # 第一条直线
+# drawLineCurve(dataFloat[1930:1950,:],1,0.05)
+
+# # # #第二条正弦
+# drawSinCurve(dataFloat[1950:1985,:],2)
+
+# # # # 第二条直线
+# drawLineCurve(dataFloat[1985:2010,:],2,0.05)
+
+# ----------angal+networks时候的----------
 # 第一条正弦
-drawSinCurve(dataFloat[1885:1930,:],1)
+drawSinCurve(dataFloat[785:827,:],1)
 
 # # 第一条直线
-drawLineCurve(dataFloat[1930:1950,:],1,0.05)
+# drawLineCurve(dataFloat[1610:1675,:],1,0.05)
 
-# # #第二条正弦
-drawSinCurve(dataFloat[1950:1985,:],2)
+# #第二条正弦
+# drawSinCurve(dataFloat[1675:2130,:],2)
 
-# # # 第二条直线
-drawLineCurve(dataFloat[1985:2010,:],2,0.05)
+# # 第二条直线
+# drawLineCurve(dataFloat[2130:2180,:],2,0.05)
+
 
 plt.show()
 
 #-------------画出对应的误差-------------
 
-# # error = errorSinCurve(dataFloat[1675:2130,:],2)
+error = errorSinCurve(dataFloat[785:827,:],1)
 # error = errorLineCurve(dataFloat[1610:1675,:],1)
 
-# drawError(error,1)
+drawError(error,1)
 
 
 
