@@ -11,7 +11,11 @@ import math
 import numpy as np
 import time 
 
-from tf.transformations import euler_from_quaternion, quaternion_from_euler #将接收到的四元数转化为转角信息
+from tf_my import euler_from_quaternion, quaternion_from_euler #将接收到的四元数转化为转角信息
+
+import matplotlib.pyplot as plt #画图工具
+
+import random #导入随机数
 
 #全局变量赋值
 is_done=Int16()
@@ -20,7 +24,9 @@ is_done.data=0
 state=Float64MultiArray()#只有xyz
 state.data=[0,0,0]
 
-class tracking_sin():
+count = 12
+
+class tracking_data_collect():
     def __init__(self):
         #---------初始化-----------
         #------状态量------
@@ -36,27 +42,16 @@ class tracking_sin():
         self.forward_flag = 0 #直行的flag 
 
         #---------创造期望轨迹-----------
-        #创造正弦函数
-        # self.x=[1,2,3,4,5,6,7,8]#list向量
-        # self.y=np.zeros(len(self.x))
-
-        self.x=np.arange(-4,4,0.5)
-        self.y=np.zeros(len(self.x))
+        self.x,self.y = self.curve_generate(0.5)
 
         print(self.x)
         print(self.y)
 
-        #插值取目标点
-        for num in range(len(self.x)):
-            self.y[num] = 3*math.sin(self.x[num]*np.pi/8) # list向量
-
-        print(self.y)
-
-        self.count = 0
+        self.count = 10
 
         #---------跟踪算法-----------
         #跟踪
-        rospy.init_node("tracking_sin",anonymous=True) #初始化节点
+        rospy.init_node("tracking_data_collect",anonymous=True) #初始化节点
 
         #发布位姿信息
         self.pub = rospy.Publisher("transformation",Float64MultiArray,queue_size=3)
@@ -70,18 +65,25 @@ class tracking_sin():
 
     #定义第一个回调函数 (注意可能会求反的)
     def callback(self,data):
+        global count #声明全局变量
+
         print("目标点")
-        print(self.count)
+        # print(self.count)
+        print(count)
 
         print("理想位置")
-        print(self.x[self.count],self.y[self.count])
+        # print(self.x[self.count],self.y[self.count])
+        print(self.x[count],self.y[count])
 
         print("实际位置")
         print(self.positions[0:2])
 
         #计算实际位置和理想点之间的向量 :目标点-当前点
-        self.point_to_target[0] = self.x[self.count]-self.positions[0] #方向向量x
-        self.point_to_target[1] = self.y[self.count]-self.positions[1] #方向向量y
+        # self.point_to_target[0] = self.x[self.count]-self.positions[0] #方向向量x
+        # self.point_to_target[1] = self.y[self.count]-self.positions[1] #方向向量y
+
+        self.point_to_target[0] = self.x[count]-self.positions[0] #方向向量x
+        self.point_to_target[1] = self.y[count]-self.positions[1] #方向向量y
 
         #求该方向向量的yaw角
         self.yaw_point_to_target = self.angle(self.point_to_target[0],self.point_to_target[1])
@@ -98,7 +100,7 @@ class tracking_sin():
         print("distance")
         print(self.distance)
 
-        if self.distance > 0.1 : #误差大于0.1米
+        if self.distance > 0.25 : #误差大于0.1米
             print("缩小误差")
             #转动到期望的角度 
             if not (self.yaw_point_to_target - np.pi/15 < self.euler_angle[2] < self.yaw_point_to_target + np.pi/15 ): #没在规定角度之内
@@ -113,12 +115,149 @@ class tracking_sin():
         else:
             print("没有误差")
 
-            if self.count <= (len(self.x)-1) :
-                self.count = self.count+1 #目标点换成下一个点
+            # if self.count <= (len(self.x)-1) :
+            #     self.count = self.count+1 #目标点换成下一个点
+            # else :
+            #     print("最后一个点")
+            #     self.count = 0
+
+            if count >=55 :
+                count = 0
             else :
-                print("最后一个点")
-                self.count = 0
-    
+                count = count+1 #目标点换成下一个点
+
+            #在目标点随机转动一个角度:(目的主要是为了采集目标点的转动数据)
+            print("目标点：开始随机转动")
+
+            self.turn_random()
+            
+    #随机转动三圈
+    def turn_random(self):
+        
+        #生成随机数字
+        rand = random.randint(0,1)
+
+        #计数
+        count = 0
+
+        while count < 3:
+            #左转
+            if rand == 0:
+                if(is_done.data==1):
+                    #print("静止中")
+
+                    #声明变量
+                    u = np.zeros(2) #控制量声明
+
+                    #赋值角速度
+                    u[0] = 0
+                    u[1] = -1
+                    
+                    #发布线速度消息:发送数次
+                    for num in range(5):
+                        self.data_publish(u)
+
+                    #暂停一秒，让机器人充分运动
+                    time.sleep(1)
+                    
+                    #归零
+                    is_done.data = 0
+
+                    #计数自增
+                    count = count + 1
+
+                    print("目标点：逆时针旋转")
+                    
+                elif(is_done.data == 0):
+                    print("目print("目标点：开始随机转动")点：运动中")
+            
+            #右转
+            elif rand ==1:
+                if(is_done.data==1):
+                    #print("静止中")
+
+                    #声明变量
+                    u = np.zeros(2) #控制量声明
+
+                    #赋值角速度
+                    u[0] = 0
+                    u[1] = 1
+                    
+                    #发布线速度消息:发送数次
+                    for num in range(5):
+                        self.data_publish(u)
+
+                    #暂停一秒，让机器人充分运动
+                    time.sleep(1)
+                    
+                    #归零
+                    is_done.data = 0
+
+                    #计数自增
+                    count = count + 1
+
+                    print("目标点：顺时针旋转")
+                    
+                elif(is_done.data == 0):
+                    print("目标点：运动中")
+
+        #计数归零
+        count = 0
+
+        print("目标点：结束随机转动")
+
+
+        
+          
+
+
+
+    #生成双正弦曲线（lineStep 步长）
+    def curve_generate(self,lineStep):
+        #------------创建四条曲线------------
+        #第一条正弦曲线
+        sinOne_x=np.arange(4,-4,-0.5)
+        sinOne_y=np.zeros(len(sinOne_x))
+
+        #插值取目标点
+        for num in range(len(sinOne_x)):
+            sinOne_y[num] = 3*math.sin(sinOne_x[num]*np.pi/8) # list向量
+
+        #第一条直线
+        lineOne_y = np.arange(-3,3,lineStep)
+        lineOne_x = -4*np.ones(len(lineOne_y))
+
+        #第二条正弦曲线
+        sinTwo_x=np.arange(-4,4,0.5)
+        sinTwo_y=np.zeros(len(sinTwo_x)) 
+
+        for num in range(len(sinTwo_x)):
+            sinTwo_y[num] = -3*math.sin(sinTwo_x[num]*np.pi/8) # list向量
+
+        #第二条直线
+        lineTwo_y = np.arange(-3,3,lineStep)
+        lineTwo_x = 4*np.ones(len(lineOne_y))
+
+        #------------将四条曲线拼接在一起------------
+        #创建x 
+        x = np.append(sinOne_x,lineOne_x)
+        x = np.append(x,sinTwo_x)
+        x = np.append(x,lineTwo_x)
+
+        #创建y
+        y = np.append(sinOne_y,lineOne_y)
+        y = np.append(y,sinTwo_y)
+        y = np.append(y,lineTwo_y)
+
+        #创建图像
+        plt.figure(1)
+
+        plt.plot(x,y)
+
+        plt.show()
+
+        return x,y
+
     #计算实时点和目标点之间的距离
     def distance_point_to_target(self,distance_x,distance_y):
         return np.sqrt(np.square(distance_x)+np.square(distance_y))
@@ -167,9 +306,13 @@ class tracking_sin():
 
         #如果有误差转动，没误差不转动
         if error_angle>np.pi:
-            error_angle_rect = error_angle-np.pi
+            #error_angle_rect = error_angle-np.pi
+            error_angle_rect = 2*np.pi-error_angle
         else:
             error_angle_rect = error_angle
+
+        print("两个角度之间的误差是")
+        print(error_angle_rect)
 
         #误差要是大于pi/15，就转动，要是小于pi/15，就不转动
         if not error_angle_rect < np.pi/15:
@@ -277,13 +420,12 @@ class tracking_sin():
                     elif(is_done.data == 0):
                         print("运动中")
         else:
-            print("没有误差")
+            print("没有误差hhhhhhh")
 
             # #已经控制完一轮了
             # self.control_once_flag = 0
 
             #模式切换成功归零
-            self.count = 0
             
             #表明转换到目标角度之间成功
             self.turn_to_target_angle_success = 1
@@ -466,7 +608,7 @@ class tracking_sin():
 #创建主函数
 if __name__ == '__main__':
     #初始化对象
-    dataset = tracking_sin()
+    dataset = tracking_data_collect()
 
     #发布消息
     rate = rospy.Rate(10)
@@ -476,5 +618,3 @@ if __name__ == '__main__':
 
     #监控pub和sub
     rospy.spin()
-
-    

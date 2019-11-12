@@ -1,3 +1,29 @@
+<texture>
+              <diffuse>file://media/materials/textures/grass_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>1</size>
+            </texture>
+	    <texture>
+              <diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>10</size>
+            </texture>
+            <texture>
+              <diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>10</size>
+            </texture>
+            <blend>
+              <min_height>1.0</min_height>
+              <fade_dist>0.00</fade_dist>
+            </blend>
+            <blend>
+              <min_height>1.2</min_height>
+              <fade_dist>0.0</fade_dist>
+            </blend>
+
+
+
 <?xml version="1.0" ?>
 <sdf version="1.5">
 
@@ -7,8 +33,8 @@
       <collision name="collision">
         <geometry>
           <heightmap>
-            <uri>model://heightmap_dirt2/materials/textures/20.png</uri>
-            <size>15 15 1.1</size>
+            <uri>model://heightmap_dirt2/materials/textures/heightmap.png</uri>
+            <size>50 50 1.2</size>
             <pos>0 0 0</pos>
           </heightmap>
         </geometry>
@@ -44,16 +70,16 @@
               <size>5</size>
             </texture>
             <blend>
-              <min_height>0.2</min_height>
+              <min_height>0.45</min_height>
               <fade_dist>0.1</fade_dist>
             </blend>
             <blend>
-              <min_height>0.4</min_height>
-              <fade_dist>0.0</fade_dist>
+              <min_height>1.2</min_height>
+              <fade_dist>0.1</fade_dist>
             </blend>
 <!-- model://winding_valley_heightmap/materials/textures/heightmap_noise_mountain.png -->
-            <uri>model://heightmap_dirt2/materials/textures/20.png</uri>
-            <size>15 15 1.1</size>
+            <uri>model://heightmap_dirt2/materials/textures/heightmap.png</uri>
+            <size>50 50 1.2</size>
             <pos>0 0 0</pos>
           </heightmap>
         </geometry>
