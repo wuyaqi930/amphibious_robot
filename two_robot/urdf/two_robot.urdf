@@ -361,6 +361,62 @@
 
   
   
+  <link name="camera_link">
+        <visual>
+            <origin xyz=" 0 0 0 " rpy="0 0 0" />
+            <geometry>
+              <mesh
+          	filename="model://kinect/meshes/kinect.dae" />
+            </geometry>
+            <material name="white">
+                <color rgba="0 0 0 0.95"/>
+            </material>
+        </visual>
+  </link>
+ 
+  <joint name="camera_joint" type="fixed">
+        <origin xyz="-0.012 -0.116 0.155" rpy="0 0.62832 3.1416"/>
+        <parent link="base_link"/>
+        <child link="camera_link"/>
+  </joint>
+ 
+  <gazebo reference="camera_link"> <!--这一步说明插件作用的对象-->
+            <sensor type="depth" name="camera">
+            <update_rate>30.0</update_rate> <!--摄像头频率-->
+            <camera name="head">
+                <horizontal_fov>1.3962634</horizontal_fov> <!--摄像头可视范围-->
+                <image>
+                    <width>640</width> <!--分辨率-->
+                    <height>480</height>
+                    <format>R8G8B8</format> <!--数据格式-->
+                </image>
+                <clip>
+                    <near>0.01</near> <!--最近距离-->
+                    <far>300</far> <!--最远距离-->
+                </clip>
+            </camera>
+            <!--加载相机插件-->
+            <plugin name="kinect_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>10</updateRate>
+                <cameraName>camera</cameraName> <!--命名空间-->
+                <imageTopicName>rgb/image_raw</imageTopicName> <!--发布话题名-->
+                <!--发布的相机信息-->
+                <depthImageTopicName>depth/image_raw</depthImageTopicName>
+		<pointCloudTopicName>depth/points</pointCloudTopicName>
+                <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+		<depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+                <frameName>base_link</frameName>
+                <baseline>0.1</baseline>
+		<distortion_k1>0.0</distortion_k1>
+		<distortion_k2>0.0</distortion_k2>
+		<distortion_k3>0.0</distortion_k3>
+		<distortion_t1>0.0</distortion_t1>
+		<distortion_t2>0.0</distortion_t2>
+                <pointCloudCutoff>0.1</pointCloudCutoff>
+            </plugin>
+        </sensor>
+  </gazebo>
 
   
   <transmission name="tran1">

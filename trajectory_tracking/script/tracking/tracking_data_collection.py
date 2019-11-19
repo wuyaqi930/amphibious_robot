@@ -169,7 +169,7 @@ class tracking_data_collect():
                     print("目标点：逆时针旋转")
                     
                 elif(is_done.data == 0):
-                    print("目print("目标点：开始随机转动")点：运动中")
+                    print("目标点：开始随机转动")
             
             #右转
             elif rand ==1:
