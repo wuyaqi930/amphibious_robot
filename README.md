@@ -1,5 +1,10 @@
-# amphi_robot
-roslaunch two_robot gazebo.launch  
-roslaunch MYROBOT_control move.launch  
-python control.py(in MYROBOT_control/src)  
-python tracking_data_collection.py(in trajectory_tracking/script/tracking)
+# 基于kinect相机的pcl点云变换
+
+## 一、代码功能
+
+将gazebo发布的点云数据转换成相对于相机坐标系的真实三维点云数据。
+
+## 二、代码运行
+
+rosrun point_transform point_transform 
+
