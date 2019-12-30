@@ -1,0 +1,8 @@
+prefix=/home/dong/pcl_ws/devel
+
+Name: point_transform
+Description: Description of point_transform
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/dong/pcl_ws/devel/lib 
+Requires: 
