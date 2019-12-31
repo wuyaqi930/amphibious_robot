@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "/home/qi/anaconda3/bin/python",
+    "python.autoComplete.extraPaths": [
+        "/home/qi/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/kinetic/lib/python2.7/dist-packages"
+    ]
+}

@@ -1,2 +1,0 @@
-point_transform
--DCATKIN_DEVEL_PREFIX=/home/dong/pcl_ws/devel -DCMAKE_INSTALL_PREFIX=/home/dong/pcl_ws/install -G Unix Makefiles
